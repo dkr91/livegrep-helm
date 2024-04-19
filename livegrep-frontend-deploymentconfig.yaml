@@ -1,0 +1,50 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: livegrep-frontend
+  name: livegrep-frontend
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: livegrep-frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.network/compose-default: "true"
+        io.kompose.service: livegrep-frontend
+    spec:
+      containers:
+        - args:
+            - /livegrep/bin/livegrep
+            - -docroot
+            - /livegrep/web/
+            - /conf/livegrep.json
+          image: ' '
+          name: livegrep-frontend
+          ports:
+            - containerPort: 8910
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /conf
+              name: livegrep-frontend-claim0
+              readOnly: true
+      restartPolicy: Always
+      volumes:
+        - name: livegrep-frontend-claim0
+          persistentVolumeClaim:
+            claimName: livegrep-frontend-claim0
+            readOnly: true
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - livegrep-frontend
+        from:
+          kind: ImageStreamTag
+          name: 'livegrep-frontend:'
+      type: ImageChange

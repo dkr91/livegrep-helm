@@ -1,0 +1,49 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: livegrep-nginx
+  name: livegrep-nginx
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: livegrep-nginx
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.network/compose-default: "true"
+        io.kompose.service: livegrep-nginx
+    spec:
+      containers:
+        - command:
+            - nginx
+            - -c
+            - /conf/nginx.conf
+          image: ' '
+          name: livegrep-nginx
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /conf
+              name: livegrep-nginx-claim0
+              readOnly: true
+      restartPolicy: Always
+      volumes:
+        - name: livegrep-nginx-claim0
+          persistentVolumeClaim:
+            claimName: livegrep-nginx-claim0
+            readOnly: true
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - livegrep-nginx
+        from:
+          kind: ImageStreamTag
+          name: 'livegrep-nginx:'
+      type: ImageChange

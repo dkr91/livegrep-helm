@@ -1,0 +1,61 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    io.kompose.service: caddy
+  name: caddy
+spec:
+  replicas: 1
+  selector:
+    io.kompose.service: caddy
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.network/compose-default: "true"
+        io.kompose.service: caddy
+    spec:
+      containers:
+        - command:
+            - caddy
+            - -conf=/conf/Caddyfile
+            - -agree
+          env:
+            - name: CADDYPATH
+              value: /caddy
+          image: ' '
+          name: caddy
+          ports:
+            - containerPort: 80
+              hostPort: 80
+              protocol: TCP
+            - containerPort: 443
+              hostPort: 443
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /conf
+              name: caddy-claim0
+              readOnly: true
+            - mountPath: /caddy
+              name: caddy
+      restartPolicy: Always
+      volumes:
+        - name: caddy-claim0
+          persistentVolumeClaim:
+            claimName: caddy-claim0
+            readOnly: true
+        - name: caddy
+          persistentVolumeClaim:
+            claimName: caddy
+  test: false
+  triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+          - caddy
+        from:
+          kind: ImageStreamTag
+          name: caddy:0.11.1
+      type: ImageChange

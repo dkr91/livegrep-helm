@@ -1,0 +1,16 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    io.kompose.service: caddy
+  name: caddy
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+    - from:
+        kind: DockerImage
+        name: abiosoft/caddy:0.11.1
+      name: 0.11.1
+      referencePolicy:
+        type: ""
